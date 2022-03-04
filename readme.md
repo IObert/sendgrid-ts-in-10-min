@@ -20,7 +20,7 @@
 ### Handle incoming emails
 
 1. **Show the entered DNS entries** and where to find the setup instructions for the [CNAME records](https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication) and the [MX record](https://docs.sendgrid.com/for-developers/parsing-email/setting-up-the-inbound-parse-webhook)
-2. Start the server with `yarn dev` and talk about the `/hello` endpoint
+2. Start the server with `yarn dev` and discover the `/hello` endpoint
 3. **Import a function from the `fs` package**
 
    ```TypeScript
