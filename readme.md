@@ -21,13 +21,13 @@
 
 1. **Show the entered DNS entries** and where to find the setup instructions for the [CNAME records](https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication) and the [MX record](https://docs.sendgrid.com/for-developers/parsing-email/setting-up-the-inbound-parse-webhook)
 2. Start the server with `yarn dev` and discover the `/hello` endpoint
-3. **Import a function from the `fs` package**
+3. **Import a function from the `fs` package** to `src/server.ts`
 
    ```TypeScript
    import { appendFileSync } from "fs";
    ```
 
-   and **add a second endpoint** in the `src/server.ts`, which adds a new line
+   and **add a second endpoint**, which adds a new line entry
 
    ```TypeScript
    .all("/mail", async (request, reply) => {
