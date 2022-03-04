@@ -11,6 +11,7 @@
    git reset --hard origin/master
    ```
 3. Prepare the `.env` (based on `test.env`) file with the correct account secrets and the answer
+4. Run `yarn install`
 5. Open the [SendGrid Console](https://app.sendgrid.com/)
 6. Open the inbox with the proper [folder/label](https://mail.google.com/mail/u/0/#label/SendGrid+Demo)
 7. Open the web interface of your DNS provider, e.g. [Namecheap](https://ap.www.namecheap.com/Domains/DomainControlPanel/zero-g.me/advancedns)
@@ -20,7 +21,7 @@
 ### Handle incoming emails
 
 1. **Show the entered DNS entries** and where to find the setup instructions for the [CNAME records](https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication) and the [MX record](https://docs.sendgrid.com/for-developers/parsing-email/setting-up-the-inbound-parse-webhook)
-2. Start the server with `yarn dev` and discover the `/hello` endpoint
+2. Start the server with `yarn dev:server` and discover the `/hello` endpoint
 3. **Import a function from the `fs` package** to `src/server.ts`
 
    ```TypeScript
@@ -40,14 +41,16 @@
    This won't work out-of-the-box as the server cannot handle the content type yet. To deal with this type, you need to add a form parser for `Content-Type: multipart/form-data` with **a new dependency**.
 
    ```Bash
-   yarn add fastify-formbody
+   yarn add fastify-multipart
    ```
 
    ```TypeScript
    import fastifyMultipart from "fastify-multipart";
 
+   ...
+
    server
-       .register(FastifyBodyParser)
+       .register(fastifyMultipart, { addToBody: true })
    ```
 
    > If needed, you can test this request with:
@@ -82,11 +85,15 @@
    yarn add @sendgrid/mail datamask
    ```
 
-   and **import them** on top of the file
+   and **import them** on top of the file and **intialize** the SendGrid client.
 
    ```TypeScript
    import { MailService } from "@sendgrid/mail";
    import { email } from "datamask";
+
+   const sendgridClient = new MailService();
+
+   sendgridClient.setApiKey(process.env.SENDGRID_API_KEY || "");
    ```
 
    These packages **enhance the webhook** to parse the incoming email, send a reply, and log the information in a privacy-respecting way in the console. Don't forget to replace `<YOUR DOMAIN HERE>` with your authenticated domain.
