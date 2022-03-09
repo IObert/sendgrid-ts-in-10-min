@@ -19,7 +19,7 @@ rawEntries.split("\n").forEach((line) => {
   }
 });
 
-let entries = Object.values(dedupedEntries);
+const entries = Object.values(dedupedEntries);
 
 const ranking = entries
   .sort((a, b) => a.diff - b.diff)
@@ -42,7 +42,7 @@ entries.forEach(async (entry) => {
       templateId: "d-5b4125d183f5460cb8247c06d619c25d",
       dynamicTemplateData: {
         ranking,
-        answer: process.env.SOLUTION,
+        answer: SOLUTION,
       },
     });
     console.log(`Notified ${email(entry.email)}`);
