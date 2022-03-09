@@ -208,7 +208,7 @@
     }
     });
 
-    let entries = Object.values(dedupedEntries);
+    const entries = Object.values(dedupedEntries);
    ```
 
    Sort all entries based on the distance to the correct answer.
@@ -238,7 +238,7 @@
         templateId: "<TEMPLATE ID>",
         dynamicTemplateData: {
         ranking,
-        answer: process.env.SOLUTION,
+        answer: SOLUTION,
         },
     });
     console.log(`Notified ${email(entry.email)}`);
