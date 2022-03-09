@@ -34,7 +34,7 @@
   "dependencies": {
     "@sendgrid/mail": "^7.6.1",
     "datamask": "^1.0.0",
-    "fastify": "^3.27.2",
+    "fastify": "^3.27.4",
     "fastify-multipart": "^5.3.1"
   }
 }
