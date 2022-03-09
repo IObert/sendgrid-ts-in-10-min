@@ -12,7 +12,7 @@
    ```
 3. Prepare the `.env` (based on `test.env`) file with the correct account secrets and the answer
 4. Run `yarn install`
-5. Open the [SendGrid Console](https://app.sendgrid.com/)
+5. Open the [SendGrid Console](https://app.sendgrid.com/) (if existing, remove the inbound parse)
 6. Open the inbox with the proper [folder/label](https://mail.google.com/mail/u/0/#label/SendGrid+Demo)
 7. Open the web interface of your DNS provider, e.g. [Namecheap](https://ap.www.namecheap.com/Domains/DomainControlPanel/zero-g.me/advancedns)
 
