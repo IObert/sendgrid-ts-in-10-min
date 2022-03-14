@@ -12,15 +12,15 @@
    ```
 3. Prepare the `.env` (based on `test.env`) file with the correct account secrets and the answer
 4. Run `yarn install`
-5. Open the [SendGrid Console](https://app.sendgrid.com/) (if existing, remove the inbound parse)
-6. Open the inbox with the proper [folder/label](https://mail.google.com/mail/u/0/#label/SendGrid+Demo)
+5. Open the [SendGrid Console](https://app.sendgrid.com/)
+6. Open the [inbox folder/label](https://mail.google.com/mail/u/0/#label/SendGrid+Demo) to which you'll send the emails
 7. Open the web interface of your DNS provider, e.g. [Namecheap](https://ap.www.namecheap.com/Domains/DomainControlPanel/zero-g.me/advancedns)
 
 ## Demo Flow
 
 ### Handle incoming emails
 
-1. **Show the entered DNS entries** and where to find the setup instructions for the [CNAME records](https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication) and the [MX record](https://docs.sendgrid.com/for-developers/parsing-email/setting-up-the-inbound-parse-webhook)
+1. **Check whether you set the right DNS entries** based on the setup instructions for the [CNAME records](https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication) and the [MX record](https://docs.sendgrid.com/for-developers/parsing-email/setting-up-the-inbound-parse-webhook)
 2. Start the server with `yarn dev:server` and discover the `/hello` endpoint
 3. **Import a function from the `fs` package** to `src/server.ts`
 
@@ -36,21 +36,6 @@
     reply.code(201);
     reply.send();
    });
-   ```
-
-   This won't work out-of-the-box as the server cannot handle the content type yet. To deal with this type, you need to add a form parser for `Content-Type: multipart/form-data` with **a new dependency**.
-
-   ```Bash
-   yarn add fastify-multipart
-   ```
-
-   ```TypeScript
-   import fastifyMultipart from "fastify-multipart";
-
-   ...
-
-   server
-       .register(fastifyMultipart, { addToBody: true })
    ```
 
    > If needed, you can test this request with:
@@ -71,15 +56,22 @@
    > ------WebKitFormBoundary7MA4YWxkTrZu0gW--
    > ```
 
-4. Start `ngrok` and there the webhook in the console.
+   This won't work out-of-the-box as the server cannot handle the content type yet. To deal with this type, you need to add a form parser for `Content-Type: multipart/form-data` with **a new dependency**.
 
    ```Bash
-   ngrok http 3000
-   # or
-   ngrok http -subdomain=<domain> 3000
+   yarn add fastify-multipart
    ```
 
-5. **Install SendGrid client and the datamask package**
+   ```TypeScript
+   import fastifyMultipart from "fastify-multipart";
+
+   ...
+
+   server
+       .register(fastifyMultipart, { addToBody: true })
+   ```
+
+4. **Install SendGrid client and the datamask package**
 
    ```Bash
    yarn add @sendgrid/mail datamask
@@ -94,6 +86,26 @@
    const sendgridClient = new MailService();
 
    sendgridClient.setApiKey(process.env.SENDGRID_API_KEY || "");
+   ```
+
+   There is currently no type that defines the structure of the webhooks' payload. Let's change this by \*\*adding a new `src/types.d.ts` file:
+
+   ```TypeScript
+   type EmailBody = {
+       called: any;
+       headers: any;
+       attachments: any;
+       dkim: any;
+       subject: any;
+       to: any;
+       html: any;
+       from: any;
+       text: any;
+       sender_ip: any;
+       envelope: any;
+       charsets: any;
+       SPF: any;
+   };
    ```
 
    These packages **enhance the webhook** to parse the incoming email, send a reply, and log the information in a privacy-respecting way in the console. Don't forget to replace `<YOUR DOMAIN HERE>` with your authenticated domain.
@@ -139,24 +151,12 @@
    });
    ```
 
-   There is currently no type that defines the structure of the webhooks' payload. Let's change this by \*\*adding a new `src/types.d.ts` file:
+5. Start `ngrok` and there the webhook in the console.
 
-   ```TypeScript
-   type EmailBody = {
-       called: any;
-       headers: any;
-       attachments: any;
-       dkim: any;
-       subject: any;
-       to: any;
-       html: any;
-       from: any;
-       text: any;
-       sender_ip: any;
-       envelope: any;
-       charsets: any;
-       SPF: any;
-   };
+   ```Bash
+   ngrok http 3000
+   # or
+   ngrok http -subdomain=<domain> 3000
    ```
 
 6. **Register the inbound parse URL** (aka the webhook). You can find a subpage **Inbound Parse** in the SendGrid Settings. Click on the **Add Host & URL** button.
@@ -170,17 +170,7 @@
 
 ### Notify all entrants of the final result
 
-1. It's time to evaluate all entries and find the one with the closest estimate. For this, **add a new type** to `src/types.d.ts`:
-
-   ```TypeScript
-   type Entry = {
-       email: string,
-       estimate: number,
-       diff: number
-   }
-   ```
-
-2. **Create a new file `findWinner.ts`** and import the packages you already know from the previous file.
+1. It's time to evaluate all entries and find the one with the closest estimate. For this, **create a new file `findWinner.ts`** and import the packages you already know from the previous file.
 
    ```TypeScript
    import { MailService } from "@sendgrid/mail";
@@ -193,13 +183,13 @@
    ```TypeScript
    const SOLUTION = +(process.env.SOLUTION || "0"); // later add solution
 
-    const rawEntries = readFileSync("entries.txt").toString();
-    const dedupedEntries: { [key: string]: Entry } = {};
+   const rawEntries = readFileSync("entries.txt").toString();
+   const dedupedEntries: { [key: string]: Entry } = {};
 
-    rawEntries.split("\n").forEach((line) => {
-    const emailAddress = line.split("# #")[0],
+   rawEntries.split("\n").forEach((line) => {
+   const emailAddress = line.split("# #")[0],
         estimate = +line.split("# #")[1];
-    if (emailAddress) {
+   if (emailAddress) {
         dedupedEntries[emailAddress] = {
         email: emailAddress,
         estimate: estimate,
@@ -208,10 +198,20 @@
     }
     });
 
-    const entries = Object.values(dedupedEntries);
+   const entries = Object.values(dedupedEntries);
    ```
 
-   Sort all entries based on the distance to the correct answer.
+2. **Add a new type** to `src/types.d.ts`:
+
+   ```TypeScript
+   type Entry = {
+       email: string,
+       estimate: number,
+       diff: number
+   }
+   ```
+
+3. Sort all entries based on the distance to the correct answer.
 
    ```TypeScript
    const ranking = entries
@@ -223,11 +223,11 @@
    To finish this file, initialize the SendGrid client with the API key and send one email to each entrant containing all the estimates (while masking the original email addresses of the participants).
 
    ```TypeScript
-    const sendgridClient = new MailService();
+   const sendgridClient = new MailService();
     sendgridClient.setApiKey(process.env.SENDGRID_API_KEY || "");
 
-    entries.forEach(async (entry) => {
-    await sendgridClient.send({
+   entries.forEach(async (entry) => {
+   await sendgridClient.send({
         to: {
         email: entry.email,
         },
@@ -240,12 +240,12 @@
         ranking,
         answer: SOLUTION,
         },
-    });
-    console.log(`Notified ${email(entry.email)}`);
-    });
+   });
+   console.log(`Notified ${email(entry.email)}`);
+   });
    ```
 
-3. You probably noticed that this email is not a simple text-mail as before. This snippet makes use of a template that does not yet exist. Build it with the SendGrid web application. Select **Create a Dynamic Template** from the panel and provide any name.
+4. You probably noticed that this email is not a simple text-mail as before. This snippet makes use of a template id (e.g. `d-715d8d3c15824887988d2597e659756b`) that does not yet exist. Build it with the SendGrid web application. Select [**Create a Dynamic Template**](https://mc.sendgrid.com/dynamic-templates) from the panel and provide any name.
 
    ![Create a dynamic template](./docs/CreateDynamicTemplate.png)
 
@@ -261,7 +261,7 @@
 
    ![Use the designer to create your template](./docs/Designer.png)
 
-4. **Run `yarn dev:findWinner`** to send the email with the final results to all attendees.
+5. Insert your template ID in the code and **run `yarn dev:findWinner`** to send the email with the final results to all attendees.
 
 ## Congrats
 
