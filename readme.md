@@ -20,7 +20,7 @@
 
 ### Handle incoming emails
 
-1. **Check whether you set the right DNS entries** based on the setup instructions for the [CNAME records](https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication) and the [MX record](https://docs.sendgrid.com/for-developers/parsing-email/setting-up-the-inbound-parse-webhook)
+1. **Check whether you set the needed DNS entries** based on the setup instructions for the [CNAME records](https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication) and the [MX record](https://docs.sendgrid.com/for-developers/parsing-email/setting-up-the-inbound-parse-webhook).
 2. Start the server with `yarn dev:server` and discover the `/hello` endpoint
 3. **Import a function from the `fs` package** to `src/server.ts`
 
@@ -56,7 +56,7 @@
    > ------WebKitFormBoundary7MA4YWxkTrZu0gW--
    > ```
 
-   This won't work out-of-the-box as the server cannot handle the content type yet. To deal with this type, you need to add a form parser for `Content-Type: multipart/form-data` with **a new dependency**.
+   This request won't work out-of-the-box as the server cannot handle the content type yet. To deal with this type, you need to add a form parser for `Content-Type: multipart/form-data` with **a new dependency**.
 
    ```Bash
    yarn add fastify-multipart
@@ -71,13 +71,13 @@
        .register(fastifyMultipart, { addToBody: true })
    ```
 
-4. **Install SendGrid client and the datamask package**
+4. **Install SendGrid client and the datamask package**,
 
    ```Bash
    yarn add @sendgrid/mail datamask
    ```
 
-   and **import them** on top of the file and **intialize** the SendGrid client.
+   **import them** to the file, and **initialize** the SendGrid client.
 
    ```TypeScript
    import { MailService } from "@sendgrid/mail";
@@ -151,7 +151,7 @@
    });
    ```
 
-5. Start `ngrok` and there the webhook in the console.
+5. Start `ngrok` in the console to expose the webhook.
 
    ```Bash
    ngrok http 3000
@@ -164,7 +164,7 @@
 
    **Select the domain** you previously authenticated and leave the subdomain empty. Now you can enter your ngrok URL as the **Destination URL** and confirm with **Add**.
    ![Filled out form](./docs/EnterWebhook.png)
-   You should now see the new inbourse parse in the list.
+   You should now see the new inbound parse in the list.
 
 7. Now, the server is ready to handle incoming emails. Send emails that contain a number in the message to `lottery@<YOUR DOMAIN HERE>`. Note that other email addresses of the same domain will also work, but the response will be sent from `lottery@`. Depending on the sending email provider, it might take a few seconds until you see the output in your console.
 
@@ -245,7 +245,7 @@
    });
    ```
 
-4. You probably noticed that this email is not a simple text-mail as before. This snippet makes use of a template id (e.g. `d-715d8d3c15824887988d2597e659756b`) that does not yet exist. Build it with the SendGrid web application. Select [**Create a Dynamic Template**](https://mc.sendgrid.com/dynamic-templates) from the panel and provide any name.
+4. You probably noticed that this email is not a simple text-mail as before. This snippet utilizes a template-id (like `d-715d8d3c15824887988d2597e659756b`) that does not yet exist. Build it with the SendGrid web application. Select [**Create a Dynamic Template**](https://mc.sendgrid.com/dynamic-templates) from the panel and provide any name.
 
    ![Create a dynamic template](./docs/CreateDynamicTemplate.png)
 
@@ -253,11 +253,11 @@
 
    ![Add a version to the template](./docs/AddTemplateVersion.png)
 
-   When prompted, select the **Blank Template**
+   When prompted, select the **Blank Template**.
 
    ![Select the blank template](/docs/SelectBlank.png)
 
-   In this editor, you can design your own template via drag-and-drop. Alternatively, you can make use this pre-build template [DynamicTemplate.html](./DynamicTemplate.html)
+   In this editor, you can design your template via drag-and-drop. Alternatively, you can use this pre-built template[DynamicTemplate.html](./DynamicTemplate.html).
 
    ![Use the designer to create your template](./docs/Designer.png)
 
