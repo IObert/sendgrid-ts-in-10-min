@@ -56,11 +56,7 @@
    > ------WebKitFormBoundary7MA4YWxkTrZu0gW--
    > ```
 
-   This request won't work out-of-the-box as the server cannot handle the content type yet. To deal with this type, you need to add a form parser for `Content-Type: multipart/form-data` with **a new dependency**.
-
-   ```Bash
-   yarn add fastify-multipart
-   ```
+   This request won't work out-of-the-box as the server cannot handle the content type yet. To deal with this type, you need to add a form parser for `Content-Type: multipart/form-data` with the package [fastify-multipart](https://www.npmjs.com/package/fastify-multipart).
 
    ```TypeScript
    import fastifyMultipart from "fastify-multipart";
@@ -71,13 +67,7 @@
        .register(fastifyMultipart, { addToBody: true })
    ```
 
-4. **Install SendGrid client and the datamask package**,
-
-   ```Bash
-   yarn add @sendgrid/mail datamask
-   ```
-
-   **import them** to the file, and **initialize** the SendGrid client.
+4. **Import the SendGrid client and the datamask package** and **initialize** the SendGrid client.
 
    ```TypeScript
    import { MailService } from "@sendgrid/mail";
@@ -88,27 +78,7 @@
    sendgridClient.setApiKey(process.env.SENDGRID_API_KEY || "");
    ```
 
-   There is currently no type that defines the structure of the webhooks' payload. Let's change this by \*\*adding a new `src/types.d.ts` file:
-
-   ```TypeScript
-   type EmailBody = {
-       called: any;
-       headers: any;
-       attachments: any;
-       dkim: any;
-       subject: any;
-       to: any;
-       html: any;
-       from: any;
-       text: any;
-       sender_ip: any;
-       envelope: any;
-       charsets: any;
-       SPF: any;
-   };
-   ```
-
-   These packages **enhance the webhook** to parse the incoming email, send a reply, and log the information in a privacy-respecting way in the console. Don't forget to replace `<YOUR DOMAIN HERE>` with your authenticated domain.
+   Use these packages **enhance the webhook** to parse the incoming email, send a reply, and log the information in a privacy-respecting way in the console. Don't forget to replace `<YOUR DOMAIN HERE>` with your authenticated domain.
 
    ```TypeScript
    .all("/mail", async (request, reply) => {
@@ -120,7 +90,8 @@
 
     appendFileSync("entries.txt", `${sender}# #${guess}\n`);
 
-    const msg = {
+    try {
+      await sendgridClient.send({
       to: {
         email: sender,
       },
@@ -136,10 +107,7 @@
       <p>Feel free to send another email if you want to update your guess.</p>
 
       <p>The submitted data will be only be used for the demo and deleted afterward.</p>`,
-    };
-
-    try {
-      await sendgridClient.send(msg);
+    });
       console.log(`Response has been sent to ${email(sender)}.`);
       reply.code(201);
     } catch (error) {
@@ -181,7 +149,7 @@
    Read the solution from the `.env` and all entries from the file line-by-line.
 
    ```TypeScript
-   const SOLUTION = +(process.env.SOLUTION || "0"); // later add solution
+   const SOLUTION = +(process.env.SOLUTION || "0");
 
    const rawEntries = readFileSync("entries.txt").toString();
    const dedupedEntries: { [key: string]: Entry } = {};
@@ -201,17 +169,7 @@
    const entries = Object.values(dedupedEntries);
    ```
 
-2. **Add a new type** to `src/types.d.ts`:
-
-   ```TypeScript
-   type Entry = {
-       email: string,
-       estimate: number,
-       diff: number
-   }
-   ```
-
-3. Sort all entries based on the distance to the correct answer.
+2. **Sort all entries** based on the distance to the correct answer.
 
    ```TypeScript
    const ranking = entries
@@ -220,36 +178,11 @@
     .join("\n");
    ```
 
-   To finish this file, initialize the SendGrid client with the API key and send one email to each entrant containing all the estimates (while masking the original email addresses of the participants).
-
-   ```TypeScript
-   const sendgridClient = new MailService();
-    sendgridClient.setApiKey(process.env.SENDGRID_API_KEY || "");
-
-   entries.forEach(async (entry) => {
-   await sendgridClient.send({
-        to: {
-        email: entry.email,
-        },
-        from: {
-        email: "lottery@<YOUR DOMAIN HERE>",
-        name: "SendGrid Demo",
-        },
-        templateId: "<TEMPLATE ID>",
-        dynamicTemplateData: {
-        ranking,
-        answer: SOLUTION,
-        },
-   });
-   console.log(`Notified ${email(entry.email)}`);
-   });
-   ```
-
-4. You probably noticed that this email is not a simple text-mail as before. This snippet utilizes a template-id (like `d-715d8d3c15824887988d2597e659756b`) that does not yet exist. Build it with the SendGrid web application. Select [**Create a Dynamic Template**](https://mc.sendgrid.com/dynamic-templates) from the panel and provide any name.
+3. This time, we won't send a simple mail as before but use an appealing layout. The SendGrid web application can help you with its WYSIWYG editor. Select [**Create a Dynamic Template**](https://mc.sendgrid.com/dynamic-templates) from the panel and provide any name.
 
    ![Create a dynamic template](./docs/CreateDynamicTemplate.png)
 
-   You can see the template and a template ID have been created. **Use this ID in the `findWinner.ts` file** before clicking **Add Version**.
+   You can see the template and a template ID have been created. **Use this ID in the `findWinner.ts` file** before clicking **Asdd Version**.
 
    ![Add a version to the template](./docs/AddTemplateVersion.png)
 
@@ -261,7 +194,32 @@
 
    ![Use the designer to create your template](./docs/Designer.png)
 
-5. Insert your template ID in the code and **run `yarn dev:findWinner`** to send the email with the final results to all attendees.
+4. To finish this source file, initialize the SendGrid client with the API key and send one email to each entrant containing all the estimates (while masking the original email addresses of the participants). Note that this snippet utilizes a template-id (like `d-715d8d3c15824887988d2597e659756b`) that you created in the previous step.
+
+   ```TypeScript
+   const sendgridClient = new MailService();
+    sendgridClient.setApiKey(process.env.SENDGRID_API_KEY || "");
+
+   entries.forEach(async (entry) => {
+   await sendgridClient.send({
+      to: {
+         email: entry.email,
+      },
+      from: {
+         email: "lottery@<YOUR DOMAIN HERE>",
+         name: "SendGrid Demo",
+      },
+      templateId: "<TEMPLATE ID>",
+      dynamicTemplateData: {
+         ranking,
+         answer: SOLUTION,
+      },
+   });
+   console.log(`Notified ${email(entry.email)}`);
+   });
+   ```
+
+5. **Run `yarn dev:findWinner`** to send the email with the final results to all attendees.
 
 ## Congrats
 
