@@ -67,7 +67,7 @@
        .register(fastifyMultipart, { addToBody: true })
    ```
 
-4. **Import the SendGrid client and the datamask package** and **initialize** the SendGrid client.
+4. **Import the [SendGrid client](https://www.npmjs.com/package/@sendgrid/mail) and the [datamask](https://www.npmjs.com/package/datamask) package** and **initialize** the SendGrid client.
 
    ```TypeScript
    import { MailService } from "@sendgrid/mail";
