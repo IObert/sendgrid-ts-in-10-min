@@ -1,5 +1,5 @@
 {
-  "name": "sendgrid-ts-in-5-min",
+  "name": "sendgrid-ts-in-10-min",
   "version": "1.0.0",
   "description": "A quintessential introduction of Twilio for TypeScript fans",
   "main": "dist/server.js",
